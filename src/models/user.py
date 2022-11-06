@@ -3,21 +3,21 @@ from typing import Optional
 
 class User(BaseModel):
 
-    role_uuid: str
-    username: str
-    name: str
     uuid: str
+    name: str
+    username: str
+    role_uuid: str
 
 class UserCreate(BaseModel):
 
-    role_uuid: str
+    name: str
     username: str
     password: str
-    name: str
+    role_uuid: str
 
 class UserUpdate(BaseModel):
 
-    role_uuid: Optional[str] = None
+    name: Optional[str] = None
     username: Optional[str] = None
     password: Optional[str] = None
-    name: Optional[str] = None
+    role_uuid: Optional[str] = None

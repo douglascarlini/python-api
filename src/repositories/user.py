@@ -6,20 +6,19 @@ class UserRepository(Repository):
     def __init__(self):
 
         super().__init__()
-        self.name = 'users'
+        self.name = "users"
 
     def create(self, data):
 
-        data['salt'] = bcrypt.gensalt()
-        byte = data['password'].encode('utf-8')
-        data['password'] = bcrypt.hashpw(byte, data['salt'])
+        data["salt"] = bcrypt.gensalt()
+        byte = data["password"].encode("utf-8")
+        data["password"] = bcrypt.hashpw(byte, data["salt"])
 
-        data['password'] = str(data['password'].decode())
-        data['salt'] = str(data['salt'].decode())
+        data["password"] = str(data["password"].decode())
+        data["salt"] = str(data["salt"].decode())
 
         return super().create(data)
 
     def getByUsername(self, value):
 
-        result = self.search({'username': value})
-        return result[0] if len(result) > 0 else None
+        return self.db.select(self.name, {"username": value}).run(True)

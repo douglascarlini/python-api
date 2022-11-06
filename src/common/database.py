@@ -1,102 +1,223 @@
+from uuid import uuid4
 import psycopg2.extras
-import uuid
 import os
 
 DIC = psycopg2.extras.RealDictCursor
 
-class Database(object):
+class DB(object):
 
-    def __init__(self):
+    def __init__(self, dbhost='localhost', dbport=5432, dbuser='root', dbpass='123456', dbname='app'):
+
+        self.query = ""
+        self.binds = []
+        self.conn = None
+        self.uuid = None
+        self.cursor = None
+        self.whereInit = False
+        self.orderInit = False
 
         self.conn = psycopg2.connect(
-            database=os.getenv('DB_NAME'),
-            password=os.getenv('DB_PASS'),
-            host=os.getenv('DB_HOST'),
-            user=os.getenv('DB_USER'),
-            port=os.getenv('DB_PORT')
+            database=os.getenv('DB_NAME') or dbname,
+            password=os.getenv('DB_PASS') or dbpass,
+            host=os.getenv('DB_HOST') or dbhost,
+            user=os.getenv('DB_USER') or dbuser,
+            port=os.getenv('DB_PORT') or dbport
         )
-        self.cursor = None
 
-    def insert(self, table, data):
+    def run(self, one=False):
 
-        data = { k: v for k, v in data.items() if v is not None }
+        self.execute()
 
-        data['uuid'] = str(uuid.uuid4())
-        fields, values, tokens = self.extract_insert(data)
-        sql = f"INSERT INTO {table} ({fields}) VALUES ({tokens})"
-        self.execute(sql, values)
-        return data['uuid']
+        cmd = self.query[0:6]
+        if cmd == "INSERT": return self.uuid
+        elif cmd == "UPDATE": return self.rowcount()
+        elif cmd == "DELETE": return self.rowcount()
+        elif cmd == "SELECT": return self.fetchone() if one else self.fetchall()
 
-    def update(self, table, data, where=None):
+    def rowcount(self): return self.cursor.rowcount
+    def fetchone(self): return self.cursor.fetchone()
+    def fetchall(self): return list(self.cursor.fetchall())
 
-        if where is None: where = {'1': '1'}
-        data = { k: v for k, v in data.items() if v is not None }
-        where = { k: v for k, v in where.items() if v is not None }
-        changes, filters, values = self.extract_update(data, where)
-        where = f" WHERE {filters}" if len(filters) > 0 else ""
-        sql = f"UPDATE {table} SET {changes}{where}"
-        return self.execute(sql, values).cursor.rowcount
+    def execute(self):
 
-    def delete(self, table, where=None):
-
-        if where is None: where = {'1': '1'}
-        filters, values = self.extract_delete(where)
-        where = f" WHERE {filters}" if len(filters) > 0 else ""
-        sql = f"DELETE FROM {table}{where}"
-        return self.execute(sql, values).cursor.rowcount
-
-    def select(self, table, where=None, fields='*', limit=100, offset=0):
-
-        if where is None: where = {'1': '1'}
-        pg = f"LIMIT {limit} OFFSET {offset}"
-        filters, values = self.extract_select(where)
-        where = f" WHERE {filters}" if len(filters) > 0 else ""
-        sql = f"SELECT {fields} FROM {table}{where} {pg}"
-        return self.execute(sql, values).cursor.fetchall()
-
-    def execute(self, sql, binds):
+        print(self.query)
+        print(self.binds)
 
         cursor = self.conn.cursor(cursor_factory=DIC)
-        cursor.execute(sql, binds)
+        cursor.execute(self.query, self.binds)
         self.cursor = cursor
         self.conn.commit()
         return self
 
-    def extract_insert(self, data):
+    def insert(self, table, data):
 
-        fields = [k for k, v in data.items()]
-        values = [v for k, v in data.items()]
-        tokens = ["%s" for k, v in data.items()]
+        if type(data) is not dict or data == {}: return
 
-        return ','.join(fields), values, ','.join(tokens)
+        self.uuid = str(uuid4())
+        data['uuid'] = self.uuid
 
-    def extract_update(self, data, where):
+        for k, v in data.items():
+            if v is not None: self.binds.append(v)
+        fields = [k for k, v in data.items() if v is not None]
+        tokens = ["%s" for k, v in data.items() if v is not None]
 
-        values = []
+        self.query = f"INSERT INTO {table} ({', '.join(fields)}) VALUES ({', '.join(tokens)})"
 
-        for k, v in data.items(): values.append(v)
-        for k, v in where.items(): values.append(v)
+        return self
 
-        changes = [f"{k} = %s" for k, v in data.items()]
-        filters = [f"{k} = %s" for k, v in where.items()]
+    def update(self, table, data, conditions=None):
 
-        return ','.join(changes), ' AND '.join(filters), values
+        if type(conditions) is not dict or conditions == {}: conditions = None
 
-    def extract_select(self, where):
+        for k, v in data.items():
+            if v is not None: self.binds.append(v)
+        fields = [f"{k} = %s" for k, v in data.items() if v is not None]
 
-        filters = []
-        for k, v in where.items():
-            if v is str and v.find('%') > -1:
-                filters.append(f"{k} LIKE %s")
-            else: filters.append(f"{k} =  %s")
+        self.query = f"UPDATE {table} SET {', '.join(fields)}"
 
-        values = [v for k, v in where.items()]
+        if conditions is not None:
+            conditions = self._extract_conditions(conditions)
+            self.query = f"{self.query} WHERE ({conditions})"
 
-        return ' AND '.join(filters), values
+        return self
 
-    def extract_delete(self, where):
+    def delete(self, table, conditions=None):
 
-        filters = [f"{k} = %s" for k, v in where.items()]
-        values = [v for k, v in where.items()]
+        if type(conditions) is not dict or conditions == {}: conditions = None
 
-        return ' AND '.join(filters), values
+        self.query = f"DELETE FROM {table}"
+
+        if conditions is not None:
+            conditions = self._extract_conditions(conditions)
+            self.query = f"{self.query} WHERE ({conditions})"
+
+        return self
+
+    def select(self, table, conditions=None, fields='*'):
+
+        if type(conditions) is not dict or conditions == {}: conditions = None
+
+        fields = self._extract_fields(fields)
+        self.query = f"SELECT {fields} FROM {table}"
+
+        if conditions is not None:
+            conditions = self._extract_conditions(conditions)
+            self.query = f"{self.query} WHERE ({conditions})"
+
+        return self
+
+    def join(self, table, conditions=None):
+
+        if type(conditions) is not dict or conditions == {}: conditions = None
+
+        self.query = f"{self.query} JOIN {table} ON ({self._extract_conditions(conditions)})"
+
+        return self
+
+    def cond(self, field, value=None, op="=", mode="AND"):
+
+        if value is None:
+
+            conditions = self._extract_conditions(field)
+            self.query = f"{self.query} {mode.upper()} ({conditions})"
+
+        else:
+
+            self.binds.append(value)
+            self.query = f"{self.query} {mode.upper()} ({field} {op.upper()} %s)"
+
+        return self
+
+    def where(self, field, value=None, op="=", mode="AND"):
+
+        if value is None:
+
+            conditions = self._extract_conditions(field)
+
+            if self.whereInit:
+                self.query = f"{self.query} AND ({conditions})"
+            else:
+                self.query = f"{self.query} WHERE ({conditions})"
+
+        else:
+
+            self.binds.append(value)
+
+            if self.whereInit:
+                self.query = f"{self.query} {mode.upper()} ({field} {op.upper()} %s)"
+            else:
+                self.query = f"{self.query} WHERE ({field} {op.upper()} %s)"
+
+        self.whereInit = True
+
+        return self
+
+    def order(self, order=None):
+
+        if order is None: return self
+
+        order = self._extract_orders(order)
+
+        if not self.orderInit:
+            self.query = f"{self.query} ORDER BY {order}"
+        else:
+            self.query = f"{self.query}, {order}"
+
+        self.orderInit = True
+
+        return self
+
+    def limit(self, limit=100, offset=0):
+
+        self.query = f"{self.query} LIMIT {limit} OFFSET {offset}"
+
+        return self
+
+    def _extract_fields(self, fields):
+
+        if type(fields) is str:
+            return fields
+
+        elif type(fields) is list:
+            return ', '.join(fields)
+
+        elif type(fields) is dict:
+            return ', '.join([f"{b} AS {a}" for a, b in fields.items()])
+
+    def _extract_orders(self, orders):
+
+        if type(orders) is str:
+            return orders
+
+        elif type(orders) is list:
+            return ', '.join(orders)
+
+        elif type(orders) is dict:
+            for mode, order in orders.items():
+                result.append(f"{order} {mode.upper()}")
+            return ', '.join(result)
+
+    def _extract_conditions(self, conditions):
+
+        result = []
+
+        if type(conditions) is dict:
+
+            for i, (field, value) in enumerate(conditions.items()):
+
+                self.binds.append(value)
+
+                parts = field.split(' ')
+                op = parts[1] if len(parts) > 1 else "="
+                result.append(f"{parts[0]} {op.upper()} %s")
+
+        return ' AND '.join(result)
+
+    def _valid_conditions(self, data):
+
+        if type(conditions) is int or type(conditions) is float: conditions = None
+        if type(conditions) is list and len(conditions) == 0: conditions = None
+        if type(conditions) is dict and conditions == {}: conditions = None
+        if type(conditions) is str and conditions == '': conditions = None
+
+        return True if conditions is not None else False

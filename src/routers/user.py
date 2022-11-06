@@ -10,7 +10,7 @@ from models.user import User, UserCreate, UserUpdate
 
 router = APIRouter()
 
-@router.get("/{user_uuid}", tags=["users"], response_model=Union[User, ResponseError])
+@router.get("/{user_uuid}", tags=["users"], response_model=Union[None, User, ResponseError])
 async def get_user(user_uuid: str, credentials: JwtAuthorizationCredentials = Security(bearer)):
 
     try:

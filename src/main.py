@@ -16,14 +16,14 @@ app = FastAPI(title=os.getenv('APP_NAME'), description=os.getenv('APP_DESC'), ve
 # ADD CORS
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+# WEBSOCKET
+ws.Server.init(app)
+
 # ROUTERS
 app.include_router(root.router, prefix="/root")
 app.include_router(auth.router, prefix="/auth")
 app.include_router(role.router, prefix="/roles")
 app.include_router(user.router, prefix="/users")
 
-# WEBSOCKET
-ws.Server.init(app)
-
 # START SERVER
-uvicorn.run(app, host="0.0.0.0", port=int(os.getenv('APP_PORT')))
+uvicorn.run(app, host="0.0.0.0", port=int(os.getenv('APP_PORT')) or 8000)

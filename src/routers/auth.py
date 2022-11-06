@@ -11,7 +11,7 @@ from models.common import *
 
 router = APIRouter()
 
-@router.post("/", tags=["auth"], response_model=Union[AuthToken, ResponseError])
+@router.post("/", tags=["auth"], response_model=Union[None, AuthToken, ResponseError])
 async def auth(auth: Auth):
 
     try:
@@ -38,13 +38,13 @@ async def auth(auth: Auth):
                 subj = user
 
         if subj: token = bearer.create_access_token(subject=subj)
-        return AuthToken(token=token if subj is not None else "")
+        return AuthToken(token=token) if subj is not None else None
 
     except Exception as e:
 
         return ResponseError(error=str(e))
 
-@router.get("/me", tags=["auth"], response_model=Union[AuthPayload, ResponseError])
+@router.get("/me", tags=["auth"], response_model=Union[None, AuthPayload, ResponseError])
 def me(credentials: JwtAuthorizationCredentials = Security(bearer)):
 
     try:

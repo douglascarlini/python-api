@@ -10,7 +10,7 @@ from models.role import Role, RoleCreate, RoleUpdate
 
 router = APIRouter()
 
-@router.get("/{role_uuid}", tags=["roles"], response_model=Union[Role, ResponseError])
+@router.get("/{role_uuid}", tags=["roles"], response_model=Union[None, Role, ResponseError])
 async def get_role(role_uuid: str, credentials: JwtAuthorizationCredentials = Security(bearer)):
 
     try:

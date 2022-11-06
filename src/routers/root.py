@@ -12,13 +12,13 @@ async def add_root():
 
     try:
 
-        uuid = RoleRepository().create({'name': 'root'})
+        uuid = RoleRepository().create({"name": "root"})
 
         uuid = UserRepository().create({
-            'name': "Administrator",
-            'password': "123456",
-            'username': "root",
-            'role_uuid': uuid
+            "name": "Administrator",
+            "password": "123456",
+            "username": "root",
+            "role_uuid": uuid
         })
 
         return ResponseCreated(uuid=uuid)

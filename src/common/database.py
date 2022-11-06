@@ -40,9 +40,6 @@ class DB(object):
 
     def execute(self):
 
-        print(self.query)
-        print(self.binds)
-
         cursor = self.conn.cursor(cursor_factory=DIC)
         cursor.execute(self.query, self.binds)
         self.cursor = cursor

@@ -49,7 +49,7 @@ async def set_role(role_uuid: str, role: RoleUpdate, credentials: JwtAuthorizati
 
     try:
 
-        total = RoleRepository().update(role.dict(), {'uuid': role_uuid})
+        total = RoleRepository().update(role.dict(), {"uuid": role_uuid})
         return ResponseUpdated(total=total)
 
     except Exception as e:
@@ -61,7 +61,7 @@ async def del_role(role_uuid: str, credentials: JwtAuthorizationCredentials = Se
 
     try:
 
-        total = RoleRepository().delete({'uuid': role_uuid})
+        total = RoleRepository().delete({"uuid": role_uuid})
         return ResponseDeleted(total=total)
 
     except Exception as e:

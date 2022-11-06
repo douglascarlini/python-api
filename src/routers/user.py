@@ -49,7 +49,7 @@ async def set_user(user_uuid: str, user: UserUpdate, credentials: JwtAuthorizati
 
     try:
 
-        total = UserRepository().update(user.dict(), {'uuid': user_uuid})
+        total = UserRepository().update(user.dict(), {"uuid": user_uuid})
         return ResponseUpdated(total=total)
 
     except Exception as e:
@@ -61,7 +61,7 @@ async def del_user(user_uuid: str, credentials: JwtAuthorizationCredentials = Se
 
     try:
 
-        total = UserRepository().delete({'uuid': user_uuid})
+        total = UserRepository().delete({"uuid": user_uuid})
         return ResponseDeleted(total=total)
 
     except Exception as e:

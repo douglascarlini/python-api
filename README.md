@@ -1,15 +1,15 @@
 # Python API RESTful
 
-Simple Python RESTful API using FastAPI with WebSocket support.
+Python API RESTful using FastAPI framework with WebSocket support and PostgreSQL database.
 
-### Deploy
+### Configure
 
 - Create a `.env` file with the follow settings:
 
 ```
-# JWT GENERATE CONFIG
+# JWT GENERATE CONFIG (IN HOURS)
 JWT_SECRET=secret-key
-JWT_EXPIRE=28800
+JWT_EXPIRE=24
 
 # APPLICATION CONFIG
 APP_VERSION=1.0.0
@@ -31,13 +31,32 @@ DBA_USER=admin
 DBA_PORT=8080
 ```
 
-- Load environment variable from `.env`:
+> Set `MODE` to `production` when run on Docker.
+
+### Deploy
+
+- Load `.env`:
     - `$ cat .env`
 
 - Deploy:
-    - `docker-compose up -d`
+    - `$ docker-compose up -d`
 
-### WebSocket
+### WebSocket Manager
+
+To use manager to send messages to websocket clients, use:
+
+```python
+# Import manager
+from common.ws import manager
+
+# Create async function
+async def my_async_function():
+
+    # Use manager (send broadcast event)
+    await manager.event("my_event", {"my": "data"})
+```
+
+### WebSocket Client (JavaScript)
 
 ```javascript
 var token = 'JWT token generated from API'

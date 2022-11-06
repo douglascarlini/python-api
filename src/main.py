@@ -11,7 +11,7 @@ from routers import root, auth, role, user
 from common import ws
 
 # APP CONFIG
-app = FastAPI(title=os.getenv('APP_NAME'), description=os.getenv('APP_DESC'), version=os.getenv('APP_VERSION'))
+app = FastAPI(title=os.getenv("APP_NAME"), description=os.getenv("APP_DESC"), version=os.getenv("APP_VERSION"))
 
 # ADD CORS
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -26,4 +26,4 @@ app.include_router(role.router, prefix="/roles")
 app.include_router(user.router, prefix="/users")
 
 # START SERVER
-uvicorn.run(app, host="0.0.0.0", port=int(os.getenv('APP_PORT')) or 8000)
+uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("APP_PORT")) or 8000)

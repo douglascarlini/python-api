@@ -21,19 +21,19 @@ async def auth(auth: Auth):
 
         if user:
 
-            salt = user['salt'].encode('utf-8')
-            check = user['password'].encode('utf-8')
-            password = auth.password.encode('utf-8')
+            salt = user["salt"].encode("utf-8")
+            check = user["password"].encode("utf-8")
+            password = auth.password.encode("utf-8")
 
             role = RoleRepository().getByUUID(user["role_uuid"])
 
             if bcrypt.hashpw(password, salt) == check:
 
                 user["role"] = role["name"]
-                del user['role_uuid']
-                del user['password']
-                del user['created']
-                del user['salt']
+                del user["role_uuid"]
+                del user["password"]
+                del user["created"]
+                del user["salt"]
 
                 subj = user
 

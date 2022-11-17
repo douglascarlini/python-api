@@ -19,6 +19,17 @@ class UserRepository(Repository):
 
         return super().create(data)
 
+    def update(self, data, where):
+
+        data["salt"] = bcrypt.gensalt()
+        byte = data["password"].encode("utf-8")
+        data["password"] = bcrypt.hashpw(byte, data["salt"])
+
+        data["password"] = str(data["password"].decode())
+        data["salt"] = str(data["salt"].decode())
+
+        return super().update(data, where)
+
     def getByUsername(self, value):
 
         return self.db.select(self.name, {"username": value}).run(True)

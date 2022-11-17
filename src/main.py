@@ -7,7 +7,7 @@ from fastapi import FastAPI
 import uvicorn
 import os
 
-from routers import root, auth, role, user
+from routers import auth, domain, permission, role, user, user_role, role_permission
 from common import ws
 
 # APP CONFIG
@@ -20,10 +20,13 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 ws.Server.init(app)
 
 # ROUTERS
-app.include_router(root.router, prefix="/root")
 app.include_router(auth.router, prefix="/auth")
+app.include_router(permission.router, prefix="/permissions")
+app.include_router(domain.router, prefix="/domains")
 app.include_router(role.router, prefix="/roles")
 app.include_router(user.router, prefix="/users")
+app.include_router(role_permission.router, prefix="/role_permission")
+app.include_router(user_role.router, prefix="/user_role")
 
 # START SERVER
-uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("APP_PORT")) or 8000)
+uvicorn.run(app, host="0.0.0.0", port=80)

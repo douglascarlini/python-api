@@ -16,7 +16,6 @@ APP_VERSION=1.0.0
 APP_DESC=Mega API
 APP_NAME=My API
 APP_PORT=80
-MODE=dev
 
 # DATABASE CONFIG
 DB_PASS=123456
@@ -31,15 +30,13 @@ DBA_USER=admin
 DBA_PORT=8080
 ```
 
-> Set `MODE` to `production` when run on Docker.
-
 ### Deploy
-
-- Load `.env`:
-    - `$ cat .env`
 
 - Deploy:
     - `$ docker-compose up -d`
+
+- Swagger UI
+    - `http://localhost:[port]/docs`
 
 ### WebSocket Manager
 

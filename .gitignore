@@ -1,4 +1,4 @@
 **/__pycache__
-db/data
-**/.env
-*.sh
+**/.DS_Store
+/db/data
+/*.sh

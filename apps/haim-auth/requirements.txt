@@ -1,8 +1,0 @@
-fastapi-jwt-auth
-psycopg2-binary
-python-dotenv
-fastapi-jwt
-websockets
-uvicorn
-fastapi
-bcrypt

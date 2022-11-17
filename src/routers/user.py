@@ -33,7 +33,7 @@ async def get_user_list(search: Search, credentials: JwtAuthorizationCredentials
         return ResponseError(error=str(e))
 
 @router.post("/", tags=["users"], response_model=Union[ResponseCreated, ResponseError])
-async def add_user(user: UserCreate, credentials: JwtAuthorizationCredentials = Security(bearer)):
+async def add_user(user: UserCreate):
 
     try:
 

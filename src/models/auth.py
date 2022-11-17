@@ -8,8 +8,6 @@ class Auth(BaseModel):
 
 class AuthPayload(BaseModel):
 
-    username: str
-    role: str
     name: str
     uuid: str
 

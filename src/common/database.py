@@ -46,12 +46,14 @@ class DB(object):
         self.conn.commit()
         return self
 
-    def insert(self, table, data):
+    def insert(self, table, data, gen_uuid=True):
 
         if type(data) is not dict or data == {}: return
 
-        self.uuid = str(uuid4())
-        data['uuid'] = self.uuid
+        if gen_uuid:
+
+            self.uuid = str(uuid4())
+            data['uuid'] = self.uuid
 
         for k, v in data.items():
             if v is not None: self.binds.append(v)

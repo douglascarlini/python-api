@@ -6,10 +6,11 @@ class Repository(object):
 
         self.db = DB()
         self.name = None
+        self.gen_uuid = True
 
     def create(self, data):
 
-        return self.db.insert(self.name, data).run()
+        return self.db.insert(self.name, data, self.gen_uuid).run()
 
     def search(self, data=None, pager=None):
 

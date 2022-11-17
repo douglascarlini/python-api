@@ -25,14 +25,13 @@ async def auth(auth: Auth):
             check = user["password"].encode("utf-8")
             password = auth.password.encode("utf-8")
 
-            role = RoleRepository().getByUUID(user["role_uuid"])
-
             if bcrypt.hashpw(password, salt) == check:
 
-                user["role"] = role["name"]
-                del user["role_uuid"]
+                del user["username"]
                 del user["password"]
                 del user["created"]
+                del user["updated"]
+                del user["deleted"]
                 del user["salt"]
 
                 subj = user
@@ -48,6 +47,8 @@ async def auth(auth: Auth):
 def me(credentials: JwtAuthorizationCredentials = Security(bearer)):
 
     try:
+
+        print(credentials.subject)
 
         return credentials.subject
 
